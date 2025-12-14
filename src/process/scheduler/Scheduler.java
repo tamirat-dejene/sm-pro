@@ -17,6 +17,8 @@ public class Scheduler {
   private double averageWaitingTime;
   private double cpuUtilization;
   private double throughput;
+  private int contextSwitchTime = 0;
+
 
   public static class SimulationResult {
     public double avgWaitingTime;
@@ -25,7 +27,7 @@ public class Scheduler {
     public double throughput;
   }
 
-  public Scheduler(List<PCB> processes) {
+  public Scheduler(List<PCB> processes, int contextSwitchTime) {
     this.processes = processes;
     this.turnAroundTime = new HashMap<>();
     this.completionTime = new HashMap<>();
@@ -35,6 +37,12 @@ public class Scheduler {
     this.averageWaitingTime = 0D;
     this.cpuUtilization = 0D;
     this.throughput = 0D;
+
+    this.contextSwitchTime = contextSwitchTime;
+  }
+
+  public int getContextSwitchTime() {
+    return this.contextSwitchTime;
   }
 
   public List<PCB> getProcesses() {
@@ -198,6 +206,7 @@ public class Scheduler {
     var timer = 0;
     var totTAT = 0;
     var totWT = 0;
+    var lastExecutedPID = "";
 
     while (!ppq.isEmpty()) {
       var currentProcess = ppq.poll();
@@ -220,6 +229,11 @@ public class Scheduler {
 
       while (!processesCopy.isEmpty() && processesCopy.getFirst().getArrivalTime() <= timer)
         ppq.add(processesCopy.removeFirst());
+
+      // Context Switching Time
+      if (getContextSwitchTime() > 0 && !ppq.isEmpty() && !currentProcess.getPID().equals(lastExecutedPID)) 
+        timer += getContextSwitchTime();
+      lastExecutedPID = currentProcess.getPID();
 
       // If the priority queue is empty but there are still processes left to schedule,
       // advance the timer to the arrival time of the next process and add it to the queue
@@ -248,8 +262,11 @@ public class Scheduler {
     this.completionTime.clear();
     this.waitingTime.clear();
     this.scheduleTable.clear();
+
     this.averageTurnAroundTime = 0D;
     this.averageWaitingTime = 0D;
+    this.cpuUtilization = 0D;
+    this.throughput = 0D;
   }
 
 }

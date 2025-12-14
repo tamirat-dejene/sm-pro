@@ -5,12 +5,10 @@ import java.util.List;
 
 public class RoundRobin extends Scheduler {
   private int timeQuantum;
-  private int contextSwitchTime = 0;
 
   public RoundRobin(List<PCB> processes, int timeQuantum, int contextSwitchTime) {
-    super(processes);
+    super(processes, contextSwitchTime);
     this.timeQuantum = timeQuantum;
-    this.contextSwitchTime = contextSwitchTime;
   }
 
   // preemptive schedule
@@ -45,7 +43,7 @@ public class RoundRobin extends Scheduler {
       } // The process hasn't arrived yet
 
       if (!currentProcess.getPID().equals(previousPID) && !currentProcess.getPID().isEmpty()) {
-        timer += contextSwitchTime;
+        timer += getContextSwitchTime();
       }
       previousPID = currentProcess.getPID();
 

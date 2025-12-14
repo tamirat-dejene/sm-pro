@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class PriorityScheduling extends Scheduler {
-  public PriorityScheduling(List<PCB> processes) {
-    super(processes);
+  public PriorityScheduling(List<PCB> processes, int contextSwitchingTime) {
+    super(processes, contextSwitchingTime);
   }
 
   public LinkedList<String> non_preemptive_schedule() {

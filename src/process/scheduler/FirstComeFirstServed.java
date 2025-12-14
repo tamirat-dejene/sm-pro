@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.LinkedList;
 
 public class FirstComeFirstServed extends Scheduler {
-
-  public FirstComeFirstServed(List<PCB> processes) {
-    super(processes);
+  public FirstComeFirstServed(List<PCB> processes, int contextSwitchingTime) {
+    super(processes, contextSwitchingTime);
   }
 
   // Non preemptive by nature
@@ -49,6 +48,10 @@ public class FirstComeFirstServed extends Scheduler {
     
       if (!processesCopy.isEmpty())
         readyQueue.add(processesCopy.removeFirst());
+
+      // Context Switching Time
+      if (getContextSwitchTime() > 0 && !readyQueue.isEmpty()) 
+        timer += getContextSwitchTime();
     }
 
     setAverageTurnAroundTime((double) totTAT / getProcesses().size());

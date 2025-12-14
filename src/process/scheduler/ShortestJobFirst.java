@@ -5,8 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ShortestJobFirst extends Scheduler {
-  public ShortestJobFirst(List<PCB> processes) {
-    super(processes);
+  int contextSwitchingTime = 0;
+  public ShortestJobFirst(List<PCB> processes, int contextSwitchingTime) {
+    super(processes, contextSwitchingTime);
   }
 
   public LinkedList<String> non_preemptive_schedule() {

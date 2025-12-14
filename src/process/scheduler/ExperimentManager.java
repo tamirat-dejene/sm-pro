@@ -8,9 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class ExperimentManager {
-    // --- Experiment Hyperparameters ---
-    private HyperParameters hyperParameters;
-    public static class HyperParameters {
+    // --- Experiment Parameters ---
+    private Parameters parameters;
+    public static class Parameters {
         public int numJobs;
         public double meanInterArrival;
         public double meanBurst;
@@ -20,7 +20,7 @@ public class ExperimentManager {
         public int contextSwitchTime;
         public int replications;
 
-        public HyperParameters(int numJobs, double meanInterArrival, double meanBurst, double stdDevBurst,
+        public Parameters(int numJobs, double meanInterArrival, double meanBurst, double stdDevBurst,
                 int maxPriority, int timeQuantum, int contextSwitchTime, int replications) {
             this.numJobs = numJobs;
             this.meanInterArrival = meanInterArrival;
@@ -43,8 +43,8 @@ public class ExperimentManager {
     private static final String OUTPUT_FILE = "simulation_results.csv";
     
 
-    public ExperimentManager(HyperParameters hyperParameters) {
-        this.hyperParameters = hyperParameters;
+    public ExperimentManager(Parameters parameters) {
+        this.parameters = parameters;
     }
 
     public void runComparativeStudy() {
@@ -55,11 +55,11 @@ public class ExperimentManager {
             throughputs.put(alg, new ArrayList<>());
         }
 
-        for (int i = 0; i < hyperParameters.replications; i++) {
+        for (int i = 0; i < parameters.replications; i++) {
             // 1. GENERATE STOCHASTIC WORKLOAD (New random inputs for each replication)
             JobGenerator generator = new JobGenerator();
             List<PCB> workload = generator.generateWorkload(
-                hyperParameters.numJobs, hyperParameters.meanInterArrival, hyperParameters.meanBurst, hyperParameters.stdDevBurst, hyperParameters.maxPriority
+                parameters.numJobs, parameters.meanInterArrival, parameters.meanBurst, parameters.stdDevBurst, parameters.maxPriority
             );
             
             // 2. RUN ALL ALGORITHMS
@@ -69,7 +69,7 @@ public class ExperimentManager {
         // 3. STATISTICAL ANALYSIS & REPORTING
         System.out.println();
         System.out.println();
-        System.out.println("=== Statistical Analysis (Based on " + hyperParameters.replications + " Replications) ===");
+        System.out.println("=== Statistical Analysis (Based on " + parameters.replications + " Replications) ===");
         analyzeAndReportResults("Average Waiting Time (ms)", waitingTimes);
         analyzeAndReportResults("Average Turnaround Time (ms)", turnaroundTimes);
         analyzeAndReportResults("CPU Utilization (%)", cpuUtilization);
@@ -81,7 +81,7 @@ public class ExperimentManager {
     
     private void runSingleReplication(List<PCB> originalWorkload) {
         // --- FCFS ---
-        FirstComeFirstServed fcfs = new FirstComeFirstServed(deepCopy(originalWorkload));
+        FirstComeFirstServed fcfs = new FirstComeFirstServed(deepCopy(originalWorkload), parameters.contextSwitchTime);
         fcfs.schedule();
         Scheduler.SimulationResult resFCFS = fcfs.CollectMetrics();
         waitingTimes.get("FCFS").add(resFCFS.avgWaitingTime);
@@ -90,7 +90,7 @@ public class ExperimentManager {
         throughputs.get("FCFS").add(resFCFS.throughput);
 
         // --- Priority (Non-Preemptive) ---
-        PriorityScheduling priority = new PriorityScheduling(deepCopy(originalWorkload));
+        PriorityScheduling priority = new PriorityScheduling(deepCopy(originalWorkload), parameters.contextSwitchTime);
         priority.non_preemptive_schedule();
         Scheduler.SimulationResult resPri = priority.CollectMetrics();
         waitingTimes.get("Priority-NP").add(resPri.avgWaitingTime);
@@ -99,7 +99,7 @@ public class ExperimentManager {
         throughputs.get("Priority-NP").add(resPri.throughput);
 
         // --- SJF (Non-Preemptive) ---
-        ShortestJobFirst sjf = new ShortestJobFirst(deepCopy(originalWorkload));
+        ShortestJobFirst sjf = new ShortestJobFirst(deepCopy(originalWorkload), parameters.contextSwitchTime);
         sjf.non_preemptive_schedule();
         Scheduler.SimulationResult resSJF = sjf.CollectMetrics();
         waitingTimes.get("SJF-NP").add(resSJF.avgWaitingTime);
@@ -108,7 +108,7 @@ public class ExperimentManager {
         throughputs.get("SJF-NP").add(resSJF.throughput);
         
         // --- Round Robin ---
-        RoundRobin rr = new RoundRobin(deepCopy(originalWorkload), hyperParameters.timeQuantum, hyperParameters.contextSwitchTime);
+        RoundRobin rr = new RoundRobin(deepCopy(originalWorkload), parameters.timeQuantum, parameters.contextSwitchTime);
         rr.schedule();
         Scheduler.SimulationResult resRR = rr.CollectMetrics();
         waitingTimes.get("RoundRobin").add(resRR.avgWaitingTime);
@@ -145,7 +145,7 @@ public class ExperimentManager {
             writer.write("Replication,Algorithm,Metric,Value\n");
 
             // Write Data
-            for (int i = 0; i < hyperParameters.replications; i++) {
+            for (int i = 0; i < parameters.replications; i++) {
                 for (String alg : algorithmNames) {
                     writer.write(String.format("%d,%s,%s,%.2f\n", i, alg, "AvgWaitingTime", waitingTimes.get(alg).get(i)));
                     writer.write(String.format("%d,%s,%s,%.2f\n", i, alg, "AvgTurnaroundTime", turnaroundTimes.get(alg).get(i)));
