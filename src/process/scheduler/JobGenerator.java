@@ -47,7 +47,7 @@ public class JobGenerator {
 
             // Create PCB and add to workload
             String pid = "P" + i;
-            workload.add(new PCB(pid, currentArrivalTime, burstTime, priority));
+            workload.add(new PCB(pid, burstTime, currentArrivalTime, priority));
         }
 
         return workload;
