@@ -1,3 +1,4 @@
 .venv/
 docs/tex_out
 *.tex
+*.csv

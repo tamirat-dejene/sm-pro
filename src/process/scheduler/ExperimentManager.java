@@ -59,8 +59,8 @@ public class ExperimentManager {
             // 1. GENERATE STOCHASTIC WORKLOAD (New random inputs for each replication)
             JobGenerator generator = new JobGenerator();
             List<PCB> workload = generator.generateWorkload(
-                parameters.numJobs, parameters.meanInterArrival, parameters.meanBurst, parameters.stdDevBurst, parameters.maxPriority
-            );
+                parameters.numJobs, parameters.meanInterArrival, parameters.meanBurst, parameters.stdDevBurst, parameters.maxPriority,
+            i);
             
             // 2. RUN ALL ALGORITHMS
             runSingleReplication(workload);

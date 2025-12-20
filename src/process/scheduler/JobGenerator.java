@@ -1,5 +1,7 @@
 package process.scheduler;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
@@ -20,8 +22,8 @@ public class JobGenerator {
      * @return List of stochastic processes (PCBs)
      */
     public java.util.List<PCB> generateWorkload(int numJobs, double meanInterArrival, double meanBurst,
-            double burstStdDev, int maxPriority) {
-        
+            double burstStdDev, int maxPriority, int replicationID) {
+
         List<PCB> workload = new java.util.ArrayList<>();
         int currentArrivalTime = 0;
 
@@ -33,7 +35,7 @@ public class JobGenerator {
             // Ensure at least 0 arrival time spacing
             if (interArrivalTime < 0)
                 interArrivalTime = 0;
-            
+
             currentArrivalTime += interArrivalTime;
 
             // 2. Burst Time: Normal Distribution
@@ -49,9 +51,32 @@ public class JobGenerator {
             String pid = "P" + i;
             workload.add(new PCB(pid, burstTime, currentArrivalTime, priority));
         }
+        saveWorkload(workload, replicationID);
 
         return workload;
 
+    }
+    
+
+    // Conceptual code to be added inside JobGenerator or ExperimentManager's setup method
+    private void saveWorkload(List<PCB> workload, int replicationID) {
+        try (FileWriter writer = new FileWriter("generated_workloads.csv", true)) {
+            // Write header if file is new
+            if (replicationID == 0) {
+                writer.append("ReplicationID,JobID,ArrivalTime,BurstTime,Priority\n");
+            }
+            
+            for (PCB job : workload) {
+                writer.append(String.format("%d,%s,%d,%d,%d\n",
+    replicationID,      
+    job.getPID(),   
+    job.getArrivalTime(), 
+    job.getBurstTime(), 
+    job.getPriority()));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
 }
